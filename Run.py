@@ -65,7 +65,7 @@ class DIPERLUKAN:
                 }
                 response3 = session.post('https://zefoy.com/', data = data).text
 
-                if 'placeholder="Enter Video URL"' in str(response3):
+                if 'placeholder="Enter Follower URL"' in str(response3):
                     COOKIES.update(
                         {
                             "Cookie": "; ".join([str(x)+"="+str(y) for x,y in session.cookies.get_dict().items()])
@@ -85,7 +85,7 @@ class DIPERLUKAN:
         self.image_string = pytesseract.image_to_string(self.image)
         return self.image_string.replace('\n', '')
     
-    def MENDAPATKAN_FORMULIR(self, video_url: str) -> bool:
+    def MENDAPATKAN_FORMULIR(self, follower_url: str) -> bool:
         with requests.Session() as session:
             session.headers.update(
                 {
@@ -102,14 +102,14 @@ class DIPERLUKAN:
             )
             response = session.get('https://zefoy.com/').text
 
-            if 'placeholder="Enter Video URL"' in str(response):
-                self.video_form = re.search(r'name="(.*?)" placeholder="Enter Video URL"', str(response)).group(1)
+            if 'placeholder="Enter Follower URL"' in str(response):
+                self.follower_form = re.search(r'name="(.*?)" placeholder="Enter Follower URL"', str(response)).group(1)
                 self.post_action = re.findall(r'action="(.*?)">', str(response))[3]
-                printf(f"[bold bright_white]   ──>[bold green] SUCCESSFULLY FOUND VIDEO FORM!   ", end='\r')
+                printf(f"[bold bright_white]   ──>[bold green] SUCCESSFULLY FOUND FOLLOWER FORM!   ", end='\r')
                 time.sleep(1.5)
-                self.MENGIRIMKAN_TAMPILAN(self.video_form, self.post_action, video_url)
+                self.MENGIRIMKAN_TAMPILAN(self.follower_form, self.post_action, follower_url)
             else:
-                printf(f"[bold bright_white]   ──>[bold red] VIDEO FORM NOT FOUND!        ", end='\r')
+                printf(f"[bold bright_white]   ──>[bold red] FOLLOWER FORM NOT FOUND!        ", end='\r')
                 time.sleep(3.5)
                 COOKIES.update(
                     {
@@ -118,7 +118,7 @@ class DIPERLUKAN:
                 )
                 return False
     
-    def MENGIRIMKAN_TAMPILAN(self, video_form: str, post_action: str, video_url: str) -> bool:
+    def MENGIRIMKAN_TAMPILAN(self, follower_form: str, post_action: str, follower_url: str) -> bool:
         global SUKSES, GAGAL
         with requests.Session() as session:
             boundary = '----WebKitFormBoundary' \
@@ -139,7 +139,7 @@ class DIPERLUKAN:
 
             data = MultipartEncoder(
                 {
-                    video_form: (None, video_url)
+                    follower_form: (None, follower_url)
                 }, boundary=boundary
             )
 
@@ -154,10 +154,10 @@ class DIPERLUKAN:
                         'Content-Type': 'multipart/form-data; boundary={}'.format(boundary),
                     }
                 )
-                self.find_form_video = re.findall(r'type="hidden" name="(.*?)" value="(.*?)"', str(self.base64_string))
-                if len(self.find_form_video) >= 2:
-                    self.form_videolink, self.videolink = self.find_form_video[1][0], self.find_form_video[1][1]
-                    self.form_videoid, self.videoid = self.find_form_video[0][0], self.find_form_video[0][1]
+                self.find_form_follower = re.findall(r'type="hidden" name="(.*?)" value="(.*?)"', str(self.base64_string))
+                if len(self.find_form_follower) >= 2:
+                    self.form_followerlink, self.followerlink = self.find_form_follower[1][0], self.find_form_follower[1][1]
+                    self.form_followerid, self.followerid = self.find_form_follower[0][0], self.find_form_follower[0][1]
                 else:
                     printf(f"[bold bright_white]   ──>[bold red] UNABLE TO FIND REQUIRED FORM FIELDS!     ", end='\r')
                     time.sleep(3.5)
@@ -165,31 +165,31 @@ class DIPERLUKAN:
                 self.next_post_action = re.search(r'action="(.*?)"', str(self.base64_string)).group(1)
                 data = MultipartEncoder(
                     {
-                        self.form_videoid: (None, self.videoid),
-                        self.form_videolink: (None, self.videolink)
+                        self.form_followerid: (None, self.followerid),
+                        self.form_foolowerlink: (None, self.foolowerlink)
                     }, boundary=boundary
                 )
 
                 response2 = session.post('https://zefoy.com/{}'.format(self.next_post_action), data = data).text
                 self.base64_string2 = self.DECRYPTION_BASE64(response2)
 
-                if 'Successfully 1000 views sent.' in str(self.base64_string2):
+                if 'Successfully 1000 follower sent.' in str(self.base64_string2):
                     SUKSES.append(f"{self.base64_string2}")
                     printf(Panel(f"""[bold white]Status :[bold green] Successfully...
-[bold white]Link :[bold red] {video_url}
+[bold white]Link :[bold red] {follower_url}
 [bold white]Views :[bold yellow] +1000""", width=56, style="bold bright_white", title="[bold bright_white][ Sukses ]"))
                     printf(f"[bold bright_white]   ──>[bold green] TRY SENDING VIEWS AGAIN!           ", end='\r')
                     time.sleep(2.5)
-                    self.MENGIRIMKAN_TAMPILAN(video_form, post_action, video_url)
+                    self.MENGIRIMKAN_TAMPILAN(follower_form, post_action, follower_url)
                 elif 'Successfully ' in str(self.base64_string2) and ' views sent.' in str(self.base64_string2):
                     self.views_sent = re.search(r'Successfully (.*?) views sent.', str(self.base64_string2)).group(1)
                     SUKSES.append(f"{self.base64_string2}")
                     printf(Panel(f"""[bold white]Status :[bold yellow] Successfully...
-[bold white]Link :[bold red] {video_url}
+[bold white]Link :[bold red] {follower_url}
 [bold white]Views :[bold green] +{self.views_sent}""", width=56, style="bold bright_white", title="[bold bright_white][ Sukses ]"))
                     printf(f"[bold bright_white]   ──>[bold green] TRY SENDING VIEWS AGAIN!           ", end='\r')
                     time.sleep(2.5)
-                    self.MENGIRIMKAN_TAMPILAN(video_form, post_action, video_url)
+                    self.MENGIRIMKAN_TAMPILAN(follower_form, post_action, follower_url)
                 else:
                     GAGAL.append(f"{self.base64_string2}")
                     printf(f"[bold bright_white]   ──>[bold red] FAILED TO SEND VIEWS!           ", end='\r')
@@ -211,7 +211,7 @@ class DIPERLUKAN:
 
                 printf(f"[bold bright_white]   ──>[bold green] TRY SENDING VIEWS AGAIN!           ", end='\r')
                 time.sleep(2.5)
-                self.MENGIRIMKAN_TAMPILAN(video_form, post_action, video_url)
+                self.MENGIRIMKAN_TAMPILAN(follower_form, post_action, follower_url)
             elif 'Please try again later or' in str(self.base64_string):
                 printf(f"[bold bright_white]   ──>[bold red] PLEASE TRY AGAIN IN A FEW MOMENTS!     ", end='\r')
                 time.sleep(2.5)
@@ -239,7 +239,7 @@ class DIPERLUKAN:
 
                 printf(f"[bold bright_white]   ──>[bold green] TRY SENDING VIEWS AGAIN!           ", end='\r')
                 time.sleep(2.5)
-                self.MENGIRIMKAN_TAMPILAN(video_form, post_action, video_url)
+                self.MENGIRIMKAN_TAMPILAN(follower_form, post_action, follower_url)
             else: # YOU CAN DEBUGGING IF THIS ERROR HAPPENS!
                 printf(f"[bold bright_white]   ──>[bold red] FAILED TO GET VIEWS FORM!     ", end='\r')
                 time.sleep(3.5)
@@ -312,9 +312,9 @@ class MAIN:
     def __init__(self) -> None:
         try:
             self.TAMPILKAN_LOGO()
-            printf(Panel(f"[bold white]Please fill in your tiktok video link, make sure the account is not private and the\nlink is correct. Take the video link via browser!", width=56, style="bold bright_white", title="[bold bright_white][ Link Video ]", subtitle="[bold bright_white]╭─────", subtitle_align="left"))
-            video_url = Console().input("[bold bright_white]   ╰─> ")
-            if 'tiktok.com' in str(video_url) or '/video/' in str(video_url):
+            printf(Panel(f"[bold white]Please fill in your tiktok follower link, make sure the account is not private and the\nlink is correct. Take the follower link via browser!", width=56, style="bold bright_white", title="[bold bright_white][ Link follower ]", subtitle="[bold bright_white]╭─────", subtitle_align="left"))
+            follower_url = Console().input("[bold bright_white]   ╰─> ")
+            if 'tiktok.com' in str(follower_url) or '/follower/' in str(follower_url):
                 printf(Panel(f"[bold white]You can use[bold green] CTRL + C[bold white] if stuck and use[bold red] CTRL + Z[bold white] if you want to stop. If views do not come\nin try running manually and run this program again!", width=56, style="bold bright_white", title="[bold bright_white][ Catatan ]"))
                 while True:
                     try:
@@ -323,7 +323,7 @@ class MAIN:
                         else:
                             printf(f"[bold bright_white]   ──>[bold green] SENDING VIEWS!     ", end='\r')
                             time.sleep(2.5)
-                            DIPERLUKAN().MENDAPATKAN_FORMULIR(video_url)
+                            DIPERLUKAN().MENDAPATKAN_FORMULIR(follower_url)
                     except (AttributeError, IndexError):
                         printf(f"[bold bright_white]   ──>[bold red] ERROR OCCURRED IN INDEX FORM!            ", end='\r')
                         time.sleep(7.5)
@@ -336,7 +336,7 @@ class MAIN:
                         printf(f"\r                                 ", end='\r')
                         time.sleep(2.5)
             else:
-                printf(Panel(f"[bold red]Please fill in the TikTok video link correctly, make sure you take the video link in the browser!", width=56, style="bold bright_white", title="[bold bright_white][ Link Salah ]"))
+                printf(Panel(f"[bold red]Please fill in the TikTok follower link correctly, make sure you take the follower link in the browser!", width=56, style="bold bright_white", title="[bold bright_white][ Link Salah ]"))
                 sys.exit()
         except Exception as e:
             printf(Panel(f"[bold red]{str(e).capitalize()}!", width=56, style="bold bright_white", title="[bold bright_white][ Error ]"))
